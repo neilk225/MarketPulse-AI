@@ -1,5 +1,5 @@
 ﻿import { Card, CardContent, CardHeader, Stack, Typography, Box } from '@mui/material';
-import { ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis, Tooltip } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import type { SentimentBreakdown } from '../api/types';
 
 type SentimentChartProps = {
@@ -12,6 +12,11 @@ const COLOR_MAP = {
   negative: '#f97316',
 };
 
+const TRACK_COLOR = 'rgba(148,163,184,0.18)';
+const RING_THICKNESS = 24;
+const RING_GAP = 12;
+const MAX_OUTER_RADIUS = 120;
+
 export function SentimentBreakdownChart({ breakdown }: SentimentChartProps) {
   const rawData = [
     { key: 'positive', name: 'Positive', value: breakdown.positive, fill: COLOR_MAP.positive },
@@ -19,20 +24,14 @@ export function SentimentBreakdownChart({ breakdown }: SentimentChartProps) {
     { key: 'negative', name: 'Negative', value: breakdown.negative, fill: COLOR_MAP.negative },
   ];
 
-  const filtered = rawData.filter((item) => item.value > 0);
-  const total = filtered.reduce((sum, item) => sum + item.value, 0);
+  const rings = rawData.filter((item) => item.value > 0);
+  const total = rings.reduce((sum, item) => sum + item.value, 0);
 
-  const ringThickness = 18;
-  const ringGap = 10;
-  const maxOuterRadius = 120;
-
-  const rings = filtered.map((item, index) => {
-    const outerRadius = maxOuterRadius - index * (ringThickness + ringGap);
-    const innerRadius = outerRadius - ringThickness;
+  const ringGeometry = rings.map((item, index) => {
+    const outerRadius = MAX_OUTER_RADIUS - index * (RING_THICKNESS + RING_GAP);
+    const innerRadius = outerRadius - RING_THICKNESS;
     return { ...item, outerRadius, innerRadius };
   });
-
-  const maxDomain = Math.max(...rings.map((item) => item.value), 1);
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -41,9 +40,9 @@ export function SentimentBreakdownChart({ breakdown }: SentimentChartProps) {
         subheader={total ? `${total} headlines analyzed` : 'Awaiting fresh headlines'}
         sx={{ pb: 0 }}
       />
-      <CardContent sx={{ height: { xs: 320, md: 340 }, position: 'relative' }}>
+      <CardContent sx={{ height: { xs: 320, md: 340 }, position: 'relative', display: 'flex', alignItems: 'center' }}>
         {total === 0 ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 220 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
             <Typography variant="body2" color="text.secondary">
               No articles scored yet. Try a different filter or refresh the feed.
             </Typography>
@@ -51,27 +50,57 @@ export function SentimentBreakdownChart({ breakdown }: SentimentChartProps) {
         ) : (
           <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart
-                data={rings}
-                cx="50%"
-                cy="50%"
-                innerRadius={rings.at(-1)?.innerRadius ?? 20}
-                outerRadius={maxOuterRadius}
-                startAngle={90}
-                endAngle={-270}
-              >
-                <PolarAngleAxis type="number" domain={[0, maxDomain]} tick={false} />
+              <PieChart>
+                {ringGeometry.map((ring) => {
+                  const remainder = Math.max(total - ring.value, 0);
+                  const data = [
+                    {
+                      key: `${ring.key}-value`,
+                      value: ring.value,
+                      fill: ring.fill,
+                      label: ring.name,
+                      isPrimary: true,
+                    },
+                    {
+                      key: `${ring.key}-rest`,
+                      value: remainder || 0.0001,
+                      fill: TRACK_COLOR,
+                      label: `${ring.name} remainder`,
+                      isPrimary: false,
+                    },
+                  ];
+
+                  return (
+                    <Pie
+                      key={ring.key}
+                      data={data}
+                      dataKey="value"
+                      innerRadius={ring.innerRadius}
+                      outerRadius={ring.outerRadius}
+                      startAngle={90}
+                      endAngle={-270}
+                      stroke="none"
+                      paddingAngle={1.6}
+                      cornerRadius={RING_THICKNESS / 2}
+                      isAnimationActive={false}
+                    >
+                      {data.map((entry) => (
+                        <Cell key={entry.key} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                  );
+                })}
                 <Tooltip
-                  formatter={(value: number, name: string, entry) => [`${value} articles`, entry?.payload?.name ?? name]}
+                  formatter={(value: number, _name: string, payload) => {
+                    const entry = payload?.payload as { label: string; isPrimary: boolean } | undefined;
+                    if (!entry || !entry.isPrimary) {
+                      return [undefined, undefined];
+                    }
+                    return [`${value} articles`, entry.label];
+                  }}
                   cursor={{ fill: 'rgba(148,163,184,0.08)' }}
                 />
-                <RadialBar
-                  dataKey="value"
-                  cornerRadius={ringThickness / 2}
-                  background={{ fill: 'rgba(15,23,42,0.55)' }}
-                  isAnimationActive={false}
-                />
-              </RadialBarChart>
+              </PieChart>
             </ResponsiveContainer>
 
             <Stack
@@ -97,7 +126,7 @@ export function SentimentBreakdownChart({ breakdown }: SentimentChartProps) {
               spacing={{ xs: 1.5, sm: 2.5 }}
               sx={{ position: 'absolute', bottom: 8, left: 16, right: 16 }}
             >
-              {rings.map((item) => {
+              {ringGeometry.map((item) => {
                 const percent = total ? Math.round((item.value / total) * 100) : 0;
                 return (
                   <Stack key={item.key} spacing={0.6} direction="row" alignItems="center" sx={{ flex: 1 }}>

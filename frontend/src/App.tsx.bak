@@ -16,6 +16,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import { useSentiment } from './hooks/useSentiment';
 import { SentimentSummary } from './components/SentimentSummary';
+import { SentimentBreakdownChart } from './components/SentimentBreakdownChart';
 import { ArticleList } from './components/ArticleList';
 
 function App() {
@@ -136,7 +137,16 @@ function App() {
           ) : (
             data && (
               <Stack spacing={4}>
-                <SentimentSummary data={data} />
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gap: { xs: 3, lg: 4 },
+                    gridTemplateColumns: { xs: '1fr', lg: '1.1fr 0.9fr' },
+                  }}
+                >
+                  <SentimentSummary data={data} />
+                  <SentimentBreakdownChart breakdown={data.breakdown} />
+                </Box>
                 <ArticleList articles={data.articles} />
               </Stack>
             )

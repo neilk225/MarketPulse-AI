@@ -17,6 +17,10 @@ class Settings(BaseSettings):
         "yiyanghkust/finbert-tone",
         alias="SENTIMENT_MODEL_NAME",
     )
+    sentiment_confidence_threshold: float = Field(
+        0.6,
+        alias="SENTIMENT_CONFIDENCE_THRESHOLD",
+    )
 
     model_config = SettingsConfigDict(
         env_file=str(BASE_DIR / ".env"),

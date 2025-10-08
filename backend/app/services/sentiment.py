@@ -26,8 +26,24 @@ class FinnhubClient:
     _CRYPTO_SYMBOL_MAP = {
         "BTC": "BINANCE:BTCUSDT",
         "ETH": "BINANCE:ETHUSDT",
+        "BNB": "BINANCE:BNBUSDT",
         "SOL": "BINANCE:SOLUSDT",
+        "XRP": "BINANCE:XRPUSDT",
         "ADA": "BINANCE:ADAUSDT",
+        "DOGE": "BINANCE:DOGEUSDT",
+        "TRX": "BINANCE:TRXUSDT",
+        "TON": "BINANCE:TONUSDT",
+        "DOT": "BINANCE:DOTUSDT",
+        "MATIC": "BINANCE:MATICUSDT",
+        "LTC": "BINANCE:LTCUSDT",
+        "BCH": "BINANCE:BCHUSDT",
+        "AVAX": "BINANCE:AVAXUSDT",
+        "LINK": "BINANCE:LINKUSDT",
+        "XLM": "BINANCE:XLMUSDT",
+        "SHIB": "BINANCE:SHIBUSDT",
+        "UNI": "BINANCE:UNIUSDT",
+        "ATOM": "BINANCE:ATOMUSDT",
+        "ALGO": "BINANCE:ALGOUSDT",
     }
 
     def __init__(self, api_key: str) -> None:
@@ -144,10 +160,11 @@ class FinnhubClient:
 
 
 class SentimentPipeline:
-    def __init__(self, model_name: str) -> None:
+    def __init__(self, model_name: str, confidence_threshold: float) -> None:
         self._model_name = model_name
         self._classifier: Any | None = None
         self._load_lock = Lock()
+        self._confidence_threshold = max(0.0, min(1.0, confidence_threshold))
 
     async def _ensure_classifier(self) -> Any:
         if self._classifier is not None:
@@ -178,6 +195,10 @@ class SentimentPipeline:
         for article, prediction in zip(articles, predictions):
             label = _LABEL_NORMALIZATION.get(prediction["label"].lower(), "neutral")
             score = float(prediction["score"])
+
+            if label != "neutral" and score < self._confidence_threshold:
+                label = "neutral"
+
             scored.append(
                 ScoredArticle(
                     **article.model_dump(),
@@ -236,5 +257,8 @@ class SentimentService:
 
 
 finnhub_client = FinnhubClient(settings.finnhub_api_key)
-analyzer = SentimentPipeline(settings.sentiment_model_name)
+analyzer = SentimentPipeline(
+    settings.sentiment_model_name,
+    confidence_threshold=settings.sentiment_confidence_threshold,
+)
 sentiment_service = SentimentService(finnhub_client, analyzer)

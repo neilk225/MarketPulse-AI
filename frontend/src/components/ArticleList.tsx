@@ -27,6 +27,9 @@ const SENTIMENT_BADGE: Record<string, { label: string; color: string; background
   },
 };
 
+const CARD_PADDING = { xs: 1.5, sm: 2.5 };
+const HIGHLIGHT_BORDER = '1px solid rgba(148,163,184,0.12)';
+
 function formatMeta(article: ScoredArticle) {
   const meta: string[] = [];
   if (article.source) meta.push(article.source);
@@ -61,15 +64,22 @@ export function ArticleList({ articles }: ArticleListProps) {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 1.2,
-                  padding: { xs: 0, sm: 1.5 },
+                  gap: 1.4,
+                  padding: CARD_PADDING,
                   borderRadius: 3,
                   backgroundColor: 'rgba(15,23,42,0.55)',
-                  border: '1px solid rgba(148,163,184,0.12)',
+                  border: HIGHLIGHT_BORDER,
                 }}
               >
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-                  <Link href={article.url} target="_blank" rel="noopener" variant="h6" underline="hover" sx={{ flex: 1 }}>
+                  <Link
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener"
+                    variant="h6"
+                    underline="hover"
+                    sx={{ flex: 1, pr: { sm: 1.5 } }}
+                  >
                     {article.title}
                   </Link>
                   <Chip
@@ -80,21 +90,23 @@ export function ArticleList({ articles }: ArticleListProps) {
                       fontWeight: 600,
                       letterSpacing: '0.05em',
                       borderRadius: 999,
+                      px: 1.5,
+                      py: 0.5,
                     }}
                   />
                 </Stack>
 
                 {article.description && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ pr: { sm: 1.5 } }}>
                     {article.description}
                   </Typography>
                 )}
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.6, sm: 2 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.8, sm: 2 }} alignItems="center">
                   <Typography variant="caption" color="text.secondary">
                     {formatMeta(article)}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'block', sm: 'inline-block' } }}>
                     Confidence {confidence}%
                   </Typography>
                 </Stack>

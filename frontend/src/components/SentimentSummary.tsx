@@ -1,4 +1,4 @@
-﻿import { Card, CardContent, Stack, Typography, Chip, Box } from '@mui/material';
+﻿import { Card, CardContent, Stack, Typography, Chip, Box, LinearProgress } from '@mui/material';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { SentimentSnapshot } from '../api/types';
@@ -91,7 +91,7 @@ const SENTIMENT_DESCRIPTORS: Array<{ min: number; max: number; descriptor: Senti
 
 const SUMMARY_SEGMENTS = [
   { label: 'Positive', key: 'positive', color: '#38bdf8' },
-  { label: 'Neutral', key: 'neutral', color: '#94a3b8' },
+  { label: 'Neutral', key: 'neutral', color: '#fbbf24' },
   { label: 'Negative', key: 'negative', color: '#f97316' },
 ] as const;
 
@@ -107,9 +107,10 @@ export function SentimentSummary({ data }: SentimentSummaryProps) {
     ...segment,
     value: data.breakdown[segment.key],
   }));
+  const totalArticles = segments.reduce((sum, segment) => sum + segment.value, 0);
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
           <Typography variant="h5" sx={{ fontWeight: 600 }}>
@@ -145,20 +146,50 @@ export function SentimentSummary({ data }: SentimentSummaryProps) {
           </Typography>
         </Box>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
-          {segments.map((segment) => (
-            <Stack key={segment.label} spacing={0.5} sx={{ flex: 1 }}>
-              <Typography variant="caption" sx={{ letterSpacing: '0.12em', color: 'text.secondary' }}>
-                {segment.label.toUpperCase()}
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: segment.color }}>
-                {segment.value}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Headlines flagged {segment.label.toLowerCase()} in the last sweep.
-              </Typography>
-            </Stack>
-          ))}
+        <Stack spacing={2.2}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            Sentiment spectrum
+          </Typography>
+          <Stack spacing={2}>
+            {segments.map((segment) => {
+              const percent = totalArticles ? Math.round((segment.value / totalArticles) * 100) : 0;
+              return (
+                <Stack key={segment.label} spacing={0.75}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          backgroundColor: segment.color,
+                        }}
+                      />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {segment.label}
+                      </Typography>
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary">
+                      {segment.value} {segment.value === 1 ? 'article' : 'articles'} • {percent}%
+                    </Typography>
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    value={totalArticles ? (segment.value / totalArticles) * 100 : 0}
+                    sx={{
+                      height: 10,
+                      borderRadius: 999,
+                      backgroundColor: 'rgba(148,163,184,0.15)',
+                      '& .MuiLinearProgress-bar': {
+                        borderRadius: 999,
+                        backgroundColor: segment.color,
+                      },
+                    }}
+                  />
+                </Stack>
+              );
+            })}
+          </Stack>
         </Stack>
 
         <Typography variant="caption" color="text.secondary">

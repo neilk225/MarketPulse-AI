@@ -44,13 +44,6 @@ npm run dev
 ```
 Set `VITE_API_BASE_URL` in `frontend/.env` if the backend runs on a different origin (defaults to `http://localhost:8000/api`).
 
-### 3. One-Command Startup (Windows)
-```powershell
-./start-dev.ps1         # launches backend + frontend in separate terminals
-./start-dev.ps1 -BackendOnly
-./start-dev.ps1 -FrontendOnly
-```
-
 ## Usage
 - Click **Refresh** to pull fresh headlines and recompute sentiment.
 - Filter with Finnhub symbols (examples: `AAPL`, `TSLA`, `BTC`, `BINANCE:ETHUSDT`). Clear the field to revert to general news.

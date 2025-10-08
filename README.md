@@ -1,6 +1,6 @@
 ﻿# MarketPulse AI
 
-!(https://github.com/neilk225/MarketPulse-AI/blob/main/MarketPulse.png)
+![Home Page](https://github.com/neilk225/MarketPulse-AI/blob/main/MarketPulse.png)
 
 MarketPulse AI is a React based dashboard that analyzes the latest stock and crypto headlines in real time. A FastAPI backend pulls articles by calling the Finnhub News API and scores each headline using a language model. The dashboard visualizes aggregate sentiment, highlights the tone distribution, and surfaces the top headlines with manual refresh controls.
 

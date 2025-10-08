@@ -4,13 +4,13 @@ MarketPulse AI is a React based dashboard that analyzes the latest stock and cry
 
 ## Features
 - Real-time refresh that re-scores the latest Finnhub headlines on demand
-- Symbol filtering for equities and major crypto pairs
+- Symbol filtering for equities and major cryptocurrencies
 - Confidence-gated financial sentiment model for cleaner labels
 - Headline feed with tone badges, article summaries, and source metadata
-
+  
 ## Tech Stack
 - **Frontend:** React + Vite (TypeScript), Material UI, React Query
-- **Backend:** FastAPI, HTTPX, Transformers (FinBERT by default), Torch
+- **Backend:** FastAPI, HTTPX, Transformers, Torch
 - **Tooling:** Pydantic Settings, Axios, Day.js
 
 ## Setup
